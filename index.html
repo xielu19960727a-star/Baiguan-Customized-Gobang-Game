@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>趣味五子棋 - 全端游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 32px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 32px;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .btn {
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-outline {
+            background: white;
+            color: #666;
+            border: 2px solid #ddd;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .theme-selector {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .theme-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .theme-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .theme-btn {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            color: #374151;
+        }
+
+        .theme-btn.active {
+            background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .score-board {
+            border-top: 2px solid #e5e7eb;
+            padding-top: 24px;
+            margin-top: 24px;
+        }
+
+        .score-title {
+            text-align: center;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            text-align: center;
+        }
+
+        .score-item {
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .score-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .score-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .game-container {
+            display: none;
+        }
+
+        .game-container.active {
+            display: block;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .game-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .game-content {
+            display: grid;
+            gap: 24px;
+        }
+
+        @media (min-width: 1024px) {
+            .game-content {
+                grid-template-columns: 1fr 300px;
+            }
+        }
+
+        .board-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .board {
+            display: inline-grid;
+            gap: 0;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .board.classic {
+            background: #fef3c7;
+        }
+
+        .board.modern {
+            background: #334155;
+        }
+
+        .board.cyber {
+            background: #581c87;
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            border: 1px solid;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .board.classic .cell {
+            border-color: #92400e;
+        }
+
+        .board.modern .cell {
+            border-color: #64748b;
+        }
+
+        .board.cyber .cell {
+            border-color: #22d3ee;
+        }
+
+        .cell:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .stone {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .stone.black {
+            background: #000;
+        }
+
+        .stone.white {
+            background: #fff;
+            border: 2px solid #9ca3af;
+        }
+
+        .board.modern .stone.black {
+            background: linear-gradient(135deg, #1f2937 0%, #000 100%);
+        }
+
+        .board.modern .stone.white {
+            background: linear-gradient(135deg, #fff 0%, #e5e7eb 100%);
+        }
+
+        .board.cyber .stone.black {
+            background: linear-gradient(135deg, #7c3aed 0%, #000 100%);
+            box-shadow: 0 0 10px rgba(124, 58, 237, 0.5);
+        }
+
+        .board.cyber .stone.white {
+            background: linear-gradient(135deg, #a5f3fc 0%, #fff 100%);
+            box-shadow: 0 0 10px rgba(165, 243, 252, 0.5);
+        }
+
+        .stone.winning {
+            animation: pulse 1s infinite;
+            box-shadow: 0 0 0 4px #fbbf24;
+        }
+
+        .stone.last-move {
+            box-shadow: 0 0 0 2px #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-small {
+            padding: 10px 16px;
+            font-size: 14px;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .status-card {
+            background: linear-gradient(135deg, #f3e8ff 0%, #ddd6fe 100%);
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .status-title {
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .current-player {
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .current-player.black {
+            background: #1f2937;
+            color: white;
+        }
+
+        .current-player.white {
+            background: white;
+            color: #1f2937;
+            border: 2px solid #d1d5db;
+        }
+
+        .player-indicator {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+
+        .thinking {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .thinking-dot {
+            width: 12px;
+            height: 12px;
+            background: #a855f7;
+            border-radius: 50%;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .winner-card {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 12px;
+            animation: bounce 0.5s;
+        }
+
+        .winner-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .winner-text {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .stats {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-label {
+            color: #666;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #374151;
+        }
+
+        select {
+            padding: 8px 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            background: white;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 32px;
+            }
+
+            .cell {
+                width: 22px;
+                height: 22px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="menu">
+            <h1>趣味五子棋</h1>
+            <p class="subtitle">全端适配 · 多模式对战</p>
+
+            <div class="menu-buttons">
+                <button class="btn btn-primary" onclick="startGame('ai')">
+                    🤖 单人对战 AI
+                </button>
+                <button class="btn btn-secondary" onclick="startGame('local')">
+                    👥 本地双人对战
+                </button>
+            </div>
+
+            <div class="theme-selector">
+                <div class="theme-title">
+                    <span>棋盘主题</span>
+                    <span>⚙️</span>
+                </div>
+                <div class="theme-buttons">
+                    <button class="theme-btn active" onclick="setTheme('classic')">经典</button>
+                    <button class="theme-btn" onclick="setTheme('modern')">现代</button>
+                    <button class="theme-btn" onclick="setTheme('cyber')">赛博</button>
+                </div>
+            </div>
+
+            <button class="btn btn-outline" onclick="toggleSound()">
+                <span id="soundIcon">🔊</span>
+                <span id="soundText">音效开启</span>
+            </button>
+
+            <div class="score-board">
+                <div class="score-title">🏆 战绩统计</div>
+                <div class="score-grid">
+                    <div class="score-item" style="background: rgba(0,0,0,0.05);">
+                        <div class="score-value" id="blackScore">0</div>
+                        <div class="score-label">黑方胜</div>
+                    </div>
+                    <div class="score-item" style="background: rgba(209,213,219,0.3);">
+                        <div class="score-value" id="drawScore">0</div>
+                        <div class="score-label">平局</div>
+                    </div>
+                    <div class="score-item" style="background: rgba(255,255,255,0.5); border: 2px solid #d1d5db;">
+                        <div class="score-value" id="whiteScore">0</div>
+                        <div class="score-label">白方胜</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="game" class="game-container">
+            <div class="game-header">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button class="btn btn-outline btn-small" onclick="backToMenu()">← 返回</button>
+                    <h2 class="game-title" id="gameTitle">游戏中</h2>
+                </div>
+                <select id="difficulty" onchange="setDifficulty()" class="hidden">
+                    <option value="easy">简单</option>
+                    <option value="medium" selected>中等</option>
+                    <option value="hard">困难</option>
+                </select>
+            </div>
+
+            <div class="game-content">
+                <div class="board-container">
+                    <div id="board" class="board classic"></div>
+                    <div id="aiControls" class="game-controls hidden">
+                        <button class="btn btn-small" style="background: #fbbf24; color: white;" onclick="showHint()" id="hintBtn">
+                            💡 提示
+                        </button>
+                        <button class="btn btn-small" style="background: #3b82f6; color: white;" onclick="undoMove()" id="undoBtn">
+                            ↶ 悔棋
+                        </button>
+                    </div>
+                </div>
+
+                <div class="sidebar">
+                    <div class="status-card">
+                        <div class="status-title">
+                            🏆 游戏状态
+                        </div>
+
+                        <div id="thinking" class="thinking hidden">
+                            <div class="thinking-dot"></div>
+                            <span>AI思考中...</span>
+                        </div>
+
+                        <div id="currentPlayerCard" class="current-player black">
+                            <div class="player-indicator" style="background: white;"></div>
+                            <span>黑方玩家 回合</span>
+                        </div>
+
+                        <div id="winnerCard" class="winner-card hidden">
+                            <div class="winner-icon">🏆</div>
+                            <div class="winner-text" id="winnerText">获胜！</div>
+                        </div>
+
+                        <div class="stats">
+                            <div class="stat-row">
+                                <span class="stat-label">回合数</span>
+                                <span class="stat-value" id="moveCount">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">主题</span>
+                                <span class="stat-value" id="currentTheme">经典</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="resetGame()">
+                        🔄 重新开始
+                    </button>
+
+                    <button id="shareBtn" class="btn btn-secondary hidden" onclick="shareResult()">
+                        📤 分享战绩
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var BOARD_SIZE = 15;
+        var gameState = {
+            board: [],
+            currentPlayer: 'black',
+            gameMode: null,
+            winner: null,
+            winningLine: [],
+            moveHistory: [],
+            aiDifficulty: 'medium',
+            soundEnabled: true,
+            boardTheme: 'classic',
+            lastMove: null,
+            hintUsed: false,
+            undoUsed: false,
+            thinking: false,
+            score: { black: 0, white: 0, draw: 0 }
+        };
+
+        function initBoard() {
+            gameState.board = [];
+            for (var i = 0; i < BOARD_SIZE; i++) {
+                gameState.board[i] = [];
+                for (var j = 0; j < BOARD_SIZE; j++) {
+                    gameState.board[i][j] = null;
+                }
+            }
+            gameState.currentPlayer = 'black';
+            gameState.winner = null;
+            gameState.winningLine = [];
+            gameState.moveHistory = [];
+            gameState.lastMove = null;
+            gameState.hintUsed = false;
+            gameState.undoUsed = false;
+            gameState.thinking = false;
+        }
+
+        function renderBoard() {
+            var boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+            boardEl.className = 'board ' + gameState.boardTheme;
+            boardEl.style.gridTemplateColumns = 'repeat(' + BOARD_SIZE + ', 30px)';
+
+            for (var i = 0; i < BOARD_SIZE; i++) {
+                for (var j = 0; j < BOARD_SIZE; j++) {
+                    var cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.setAttribute('data-row', i);
+                    cell.setAttribute('data-col', j);
+                    cell.onclick = function() {
+                        var row = parseInt(this.getAttribute('data-row'));
+                        var col = parseInt(this.getAttribute('data-col'));
+                        makeMove(row, col);
+                    };
+
+                    if (gameState.board[i][j]) {
+                        var stone = document.createElement('div');
+                        stone.className = 'stone ' + gameState.board[i][j];
+                        
+                        if (isWinningCell(i, j)) {
+                            stone.classList.add('winning');
+                        }
+                        
+                        if (gameState.lastMove && gameState.lastMove[0] === i && gameState.lastMove[1] === j && !gameState.winner) {
+                            stone.classList.add('last-move');
+                        }
+                        
+                        cell.appendChild(stone);
+                    }
+
+                    boardEl.appendChild(cell);
+                }
+            }
+        }
+
+        function isWinningCell(row, col) {
+            for (var i = 0; i < gameState.winningLine.length; i++) {
+                if (gameState.winningLine[i][0] === row && gameState.winningLine[i][1] === col) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function makeMove(row, col) {
+            if (gameState.board[row][col] || gameState.winner || gameState.thinking) return;
+
+            gameState.board[row][col] = gameState.currentPlayer;
+            gameState.lastMove = [row, col];
+            gameState.moveHistory.push({ row: row, col: col, player: gameState.currentPlayer });
+
+            if (gameState.soundEnabled) {
+                playSound();
+            }
+
+            var winLine = checkWinner(row, col, gameState.currentPlayer);
+            if (winLine) {
+                gameState.winner = gameState.currentPlayer;
+                gameState.winningLine = winLine;
+                gameState.score[gameState.currentPlayer]++;
+                updateScore();
+                updateUI();
+                return;
+            }
+
+            var isFull = true;
+            for (var i = 0; i < BOARD_SIZE; i++) {
+                for (var j = 0; j < BOARD_SIZE; j++) {
+                    if (gameState.board[i][j] === null) {
+                        isFull = false;
+                        break;
+                    }
+                }
+                if (!isFull) break;
+            }
+            
+            if (isFull) {
+                gameState.winner = 'draw';
+                gameState.score.draw++;
+                updateScore();
+                updateUI();
+                return;
+            }
+
+            gameState.currentPlayer = gameState.currentPlayer === 'black' ? 'white' : 'black';
+            updateUI();
+
+            if (gameState.gameMode === 'ai' && gameState.currentPlayer === 'white') {
+                gameState.thinking = true;
+                updateUI();
+                setTimeout(function() {
+                    var aiMove = getAIMove();
+                    gameState.thinking = false;
+                    makeMove(aiMove[0], aiMove[1]);
+                }, 500);
+            }
+        }
+
+        function checkWinner(row, col, player) {
+            var directions = [
+                [[0, 1], [0, -1]],
+                [[1, 0], [-1, 0]],
+                [[1, 1], [-1, -1]],
+                [[1, -1], [-1, 1]]
+            ];
+
+            for (var d = 0; d < directions.length; d++) {
+                var dir = directions[d];
+                var count = 1;
+                var line = [[row, col]];
+
+                for (var i = 0; i < dir.length; i++) {
+                    var dx = dir[i][0];
+                    var dy = dir[i][1];
+                    var newRow = row + dx;
+                    var newCol = col + dy;
+                    
+                    while (newRow >= 0 && newRow < BOARD_SIZE && newCol >= 0 && newCol < BOARD_SIZE && gameState.board[newRow][newCol] === player) {
+                        count++;
+                        line.push([newRow, newCol]);
+                        newRow += dx;
+                        newCol += dy;
+                    }
+                }
+
+                if (count >= 5) {
+                    return line;
+                }
+            }
+            return null;
+        }
+
+        function getAIMove() {
+            var emptyCells = [];
+            for (var i = 0; i < BOARD_SIZE; i++) {
+                for (var j = 0; j < BOARD_SIZE; j++) {
+                    if (!gameState.board[i][j]) {
+                        emptyCells.push([i, j]);
+                    }
+                }
+            }
+
+            if (gameState.aiDifficulty === 'easy') {
+                return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            }
+
+            var bestMove = null;
+            var bestScore = -Infinity;
+
+            for (var i = 0; i < emptyCells.length; i++) {
+                var cell = emptyCells[i];
+                var row = cell[0];
+                var col = cell[1];
+                
+                var attackScore = evaluatePosition(row, col, 'white');
+                var defenseScore = evaluatePosition(row, col, 'black');
+                var totalScore = attackScore * 1.1 + defenseScore;
+
+                if (gameState.aiDifficulty === 'medium') {
+                    totalScore += Math.random() * 50;
+                }
+
+                if (totalScore > bestScore) {
+                    bestScore = totalScore;
+                    bestMove = cell;
+                }
+            }
+
+            return bestMove || emptyCells[0];
+        }
+
+        function evaluatePosition(row, col, player) {
+            var score = 0;
+            var directions = [
+                [[0, 1], [0, -1]],
+                [[1, 0], [-1, 0]],
+                [[1, 1], [-1, -1]],
+                [[1, -1], [-1, 1]]
+            ];
+
+            for (var d = 0; d < directions.length; d++) {
+                var dir = directions[d];
+                var count = 1;
+                var openEnds = 0;
+
+                for (var i = 0; i < dir.length; i++) {
+                    var dx = dir[i][0];
+                    var dy = dir[i][1];
+                    var newRow = row + dx;
+                    var newCol = col + dy;
+                    var tempCount = 0;
+
+                    while (newRow >= 0 && newRow < BOARD_SIZE && newCol >= 0 && newCol < BOARD_SIZE) {
+                        if (gameState.board[newRow][newCol] === player) {
+                            tempCount++;
+                        } else if (gameState.board[newRow][newCol] === null) {
+                            openEnds++;
+                            break;
+                        } else {
+                            break;
+                        }
+                        newRow += dx;
+                        newCol += dy;
+                    }
+                    count += tempCount;
+                }
+
+                if (count >= 5) score += 100000;
+                else if (count === 4 && openEnds > 0) score += 10000;
+                else if (count === 3 && openEnds === 2) score += 1000;
+                else if (count === 3 && openEnds === 1) score += 100;
+                else if (count === 2 && openEnds === 2) score += 10;
+            }
+
+            var centerBonus = Math.max(0, 7 - Math.abs(row - 7) - Math.abs(col - 7));
+            score += centerBonus;
+
+            return score;
+        }
+
+        function showHint() {
+            if (gameState.hintUsed || gameState.winner) return;
+            
+            var savedDifficulty = gameState.aiDifficulty;
+            gameState.aiDifficulty = 'hard';
+            var move = getAIMove();
+            gameState.aiDifficulty = savedDifficulty;
+            
+            gameState.lastMove = [move[0], move[1]];
+            gameState.hintUsed = true;
+            
+            renderBoard();
+            updateUI();
+            
+            setTimeout(function() {
+                if (gameState.moveHistory.length > 0) {
+                    var lastRealMove = gameState.moveHistory[gameState.moveHistory.length - 1];
+                    gameState.lastMove = [lastRealMove.row, lastRealMove.col];
+                } else {
+                    gameState.lastMove = null;
+                }
+                renderBoard();
+            }, 2000);
+        }
+
+        function undoMove() {
+            if (gameState.undoUsed || gameState.moveHistory.length === 0 || gameState.winner) return;
+
+            var stepsToUndo = gameState.gameMode === 'ai' ? 2 : 1;
+            gameState.moveHistory = gameState.moveHistory.slice(0, -stepsToUndo);
+            
+            initBoard();
+            for (var i = 0; i < gameState.moveHistory.length; i++) {
+                var move = gameState.moveHistory[i];
+                gameState.board[move.row][move.col] = move.player;
+            }
+            
+            gameState.currentPlayer = gameState.moveHistory.length % 2 === 0 ? 'black' : 'white';
+            gameState.undoUsed = true;
+            
+            if (gameState.moveHistory.length > 0) {
+                var lastMove = gameState.moveHistory[gameState.moveHistory.length - 1];
+                gameState.lastMove = [lastMove.row, lastMove.col];
+            } else {
+                gameState.lastMove = null;
+            }
+            
+            updateUI();
+        }
+
+        function playSound() {
+            try {
+                var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                var oscillator = audioContext.createOscillator();
+                var gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                gainNode.gain.value = 0.1;
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {
+                console.log('Audio not supported');
+            }
+        }
+
+        function updateUI() {
+            renderBoard();
+            
+            document.getElementById('moveCount').textContent = gameState.moveHistory.length;
+            
+            var thinkingEl = document.getElementById('thinking');
+            if (gameState.thinking) {
+                thinkingEl.classList.remove('hidden');
+            } else
